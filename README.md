@@ -8,6 +8,14 @@ It consists of an API Gateway, a Lambda function and a DynamoDB table.
 ## Deployment
 
 To deploy the infrastructure, you need to have Pulumi installed and configured.
+
+Make sure to also define your AWS credentials in the environment variables:
+
+```bash
+export AWS_ACCESS_KEY_ID=YOUR_ACCESS_KEY
+export AWS_SECRET_ACCESS_KEY=YOUR_SECRET
+```
+
 Then, you can run the following commands:
 
 ```bash
