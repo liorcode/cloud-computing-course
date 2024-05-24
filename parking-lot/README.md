@@ -5,6 +5,13 @@
 This project uses Pulumi to create a cloud infrastructure for a parking lot management system.
 It consists of an API Gateway, a Lambda function and a DynamoDB table.
 
+## Code
+
+The code is organized as follows:
+
+- `index.ts`: The main Pulumi program that defines the infrastructure.
+`src/functions`: The Lambda function code.
+
 ## Deployment
 
 To deploy the infrastructure, you need to have Pulumi installed and configured.
