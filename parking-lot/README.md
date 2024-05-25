@@ -38,7 +38,10 @@ Then, you can run the following commands:
 pulumi up
 ```
 
-This will output the main API Gateway URL, which you can use to interact with the different endpoints.
+This will output the following:
+- baseUrl - The base URL of the API Gateway
+- entryUrl - The URL of the entry endpoint
+- exitUrl - The URL of the exit endpoint
 
 To remove the infrastructure, you can run:
 
