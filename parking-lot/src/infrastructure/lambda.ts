@@ -16,10 +16,5 @@ export function createLambda(role: aws.iam.Role, tableName: pulumi.Output<string
     },
   });
 
-  new aws.iam.RolePolicyAttachment("parkingLotLambdaPolicy", {
-    role: role.name,
-    policyArn: aws.iam.ManagedPolicies.AWSLambdaBasicExecutionRole,
-  });
-
   return parkingLotLambda;
 }

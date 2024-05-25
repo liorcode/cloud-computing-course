@@ -1,4 +1,4 @@
-import { createApi, createDb, createLambda, createRole } from './src'
+import { createApi, createDb, createLambda, createRole } from './src/infrastructure'
 
 const role = createRole();
 const table = createDb(role);

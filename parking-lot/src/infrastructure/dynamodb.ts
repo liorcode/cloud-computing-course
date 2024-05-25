@@ -9,6 +9,7 @@ export function createDb(role: aws.iam.Role) {
     billingMode: "PAY_PER_REQUEST",
   });
 
+  // Attach a policy to the role to allow it to interact with the DynamoDB table
   new aws.iam.RolePolicy("parkingLotDbPolicy", {
     role: role.id,
     policy: {
