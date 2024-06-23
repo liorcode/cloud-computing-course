@@ -3,7 +3,7 @@ import { sendGroupMessage } from "./send-group-message.mjs";
 import { getMessages } from "./get-messages.mjs";
 
 export async function handler(event) {
-    console.info('[Messages app] Handling request', event)
+    console.info('[Messages lambda] Handling request', event)
 
     try {
         let body;

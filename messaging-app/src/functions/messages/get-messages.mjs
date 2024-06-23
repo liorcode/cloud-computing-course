@@ -1,7 +1,7 @@
 import { DynamoDB } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocument } from '@aws-sdk/lib-dynamodb';
 
-const TABLE_NAME = process.env.MESSAGES_TABLE;
+const { MESSAGES_TABLE } = process.env;
 const dynamo = DynamoDBDocument.from(new DynamoDB());
 
 export async function getMessages(event) {
@@ -14,7 +14,7 @@ export async function getMessages(event) {
     const fromDate = date ? date : "1970-01-01T00:00:00.000Z"
 
     const result = await dynamo.query({
-        TableName: TABLE_NAME,
+        TableName: MESSAGES_TABLE,
         IndexName: "recipient-date-index",
         KeyConditionExpression: "#recipient = :recipient and #date > :fromDate",
         ExpressionAttributeNames: {

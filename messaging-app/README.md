@@ -3,7 +3,7 @@
 ## Introduction
 
 This project uses Pulumi to create a cloud infrastructure for a messaging app.
-It consists of an API Gateway, a Lambda function and a DynamoDB table.
+It consists of an API Gateway, Lambda, DynamoDB and SQS.
 
 ## Code
 

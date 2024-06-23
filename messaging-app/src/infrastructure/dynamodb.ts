@@ -102,6 +102,7 @@ export function createDb(role: aws.iam.Role) {
     rangeKey: "userId",
     billingMode: "PAY_PER_REQUEST",
   });
+
   new aws.iam.RolePolicy("groupMembershipDbPolicy", {
     role: role.id,
     policy: {
@@ -123,11 +124,11 @@ export function createDb(role: aws.iam.Role) {
 
   const blockedUsersTable = new aws.dynamodb.Table("blockedUsers", {
     attributes: [
-      { name: "blocker", type: "S" },
-      { name: "blocked", type: "S" },
+      { name: "blockerId", type: "S" },
+      { name: "blockedId", type: "S" },
     ],
-    hashKey: "blocker",
-    rangeKey: "blocked",
+    hashKey: "blockerId",
+    rangeKey: "blockedId",
     billingMode: "PAY_PER_REQUEST",
   });
   new aws.iam.RolePolicy("blockedUsersDbPolicy", {
