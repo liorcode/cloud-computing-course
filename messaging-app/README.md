@@ -1,4 +1,4 @@
-# Cloud Computing HW1 - Messaging app
+# Cloud Computing HW2 - Messaging app
 
 ## Introduction
 
@@ -108,7 +108,7 @@ Parameters:
 Get all messages sent to a user of id `recipient`.
 This gets both direct messages and messages sent to groups the user is a member of.
 
-If the amount of messages is too large, the response will include a `nextPageToken` that can be used to get the next page of messages.
+If the amount of messages is too large (excceeds the MESSAGES_PER_PAGE), the response will include a `nextPageToken` that can be used to get the next page of messages.
 
 The response will be in the following format:
 
@@ -136,6 +136,6 @@ The response will be in the following format:
 
 Parameters:
 
-- `date` - Optional: The date from which to get the messages. If not provided, all messages are returned.
+- `date` - Optional: The date from which to get the messages. If not provided, all messages are returned.  
 This is useful to get only new messages since the last time the user checked for messages,
-and also for pagination - pass the `nextPageToken` from the previous response to get the next page of messages.
+and also for pagination - you need to pass the `nextPageToken` from the previous response to get the next page of messages.
