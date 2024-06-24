@@ -12,6 +12,7 @@ export async function sendGroupMessage(event) {
         throw new Error('Missing required parameters');
     }
 
+    // generate the date here, and not in the SQS processor, to make sure all recipients receive the message with the same timestamp and correct order
     const date = new Date().toISOString();
 
     // send message to queue
