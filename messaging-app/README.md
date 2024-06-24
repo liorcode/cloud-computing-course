@@ -103,6 +103,8 @@ Parameters:
 Send a message to a group of id `groupId`.  
 This function uses an SQS queue to send the messages asynchronously to each member of the group.
 
+**Note**: When sending a group messages, we do not check for blocked users (same as WhatsApp for example).
+
 Parameters:
 
 - `sender`: The id of the sender
@@ -153,16 +155,21 @@ This parameter is also used for pagination - you need to pass the `nextPageToken
 
 ## Scaling considerations
 
+We will analyze the scalability and cost of the system for different loads.
+
+**Note**: We will mostly discuss load related to messages, since the user and group management is assumed to be negligible in terms of load.
+
 ### DynamoDB
 
-All the databases are currently using the PAY_PER_REQUEST billing mode, which allows for automatic scaling based on the traffic.
+All the databases are currently using the on-demand (`PAY_PER_REQUEST`) billing mode, which allows for automatic scaling based on the traffic.
 
-Once the traffic gets more predictable, it might be beneficial to switch to `PROVISIONED` capacity to save costs, especially for the `messages` table since it will be the most used table.
+Once the traffic gets more predictable, it might be beneficial to switch to provisioned capacity to save costs, 
+especially for the `messages` table since it will be the most used table.
 
 #### Query performance
 
 All the tables are partitioned by a random UUID to distribute the data evenly across the partitions.
-All the queries are using the primary key or the primary key and sort key, which allows for efficient queries.
+All the queries are using the hash key or the hash key and sort key, which allows for efficient queries.
 
 Messages are fetched from the `messages` table using the `recipient-date-index`, which uses the `recipient` and `date` fields as the hash key and sort key.
 This allows us to efficiently get all messages sent to a user after a given date, which is useful for getting new messages since the last time the user checked for messages.
@@ -216,11 +223,11 @@ Monitoring and adjusting the provisioned capacity as needed will be crucial.
 
 #### DynamoDB Cost:
 - Writes: 300,000 writes (direct messages) + 3,000,000 writes (group messages) = 3,300,000 writes/month.
-- Reads: Assume 10,000 reads/month for retrievals.
-- Storage: 300,000 messages * 1 KB = 300 MB.
+- Reads: Assume 10,000 reads/month for retrievals + 300,000 reads for checking blocked users, when sending direct messages (one check per message).
+- Storage: Assuming a message will be 1KB at most: 300,000 messages * 1 KB = 300 MB.
   Cost: Using PAY_PER_REQUEST:
   - Writes: 3,300,000 * $1.25 per million = $4.125
-  - Reads: 10,000 * $0.25 per million = $0.0025
+  - Reads: 310,000 * $0.25 per million = $0.0775
   - Storage: 300 MB * $0.25/GB = $0.075
 
 ### SQS Cost:
