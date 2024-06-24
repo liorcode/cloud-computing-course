@@ -1,8 +1,10 @@
 import { DynamoDB } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocument } from '@aws-sdk/lib-dynamodb';
 
-const { MESSAGES_TABLE } = process.env;
+const { MESSAGES_TABLE} = process.env;
 const dynamo = DynamoDBDocument.from(new DynamoDB());
+
+const MESSAGES_PER_PAGE = 50; // Maximum number of messages per page
 
 export async function getMessages(event) {
     const { date } = event.queryStringParameters;
@@ -24,8 +26,12 @@ export async function getMessages(event) {
         ExpressionAttributeValues: {
             ":recipient": recipient,
             ":fromDate": fromDate,
-        }
+        },
+        Limit: MESSAGES_PER_PAGE,
     });
 
-    return result.Items;
+    return {
+        messages: result.Items,
+        nextPageToken: result.LastEvaluatedKey ? result.LastEvaluatedKey.date : null,
+    };
 }
