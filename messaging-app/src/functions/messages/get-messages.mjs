@@ -7,7 +7,7 @@ const dynamo = DynamoDBDocument.from(new DynamoDB());
 const MESSAGES_PER_PAGE = 50; // Maximum number of messages per page
 
 export async function getMessages(event) {
-    const { date } = event.queryStringParameters;
+    const date = event.queryStringParameters?.date;
     const { recipient } = event.pathParameters;
 
     console.info(`Getting messages for user ${recipient} after ${date}`)
