@@ -240,9 +240,11 @@ Since lambda functions are billed based on the number of invocations and the exe
 The response size is limited to MESSAGES_PER_PAGE, which allows us to get a page of messages at a time, and the query is efficient since it uses the `recipient-date-index` to get the messages efficiently.
 - Our "group message processor" lambda reads from the SQS and duplicates the message to all the members of the group. It reads in batches of 10 messages, which allows it to process the messages efficiently and in parallel.
 
-Assuming that each lambda execution time will be around 100ms, that means each lambda instance can handle around 10 messages per second.
+Assuming that each lambda execution time will be around 100ms: each lambda instance can handle around 10 messages per second.
 This means that with 1000 concurrent instances, we can handle around 10,000 messages per second.
-Over this number, we will need to increase the concurrency limit, or else the operations will be throttled - which means we will need to handle the throttling errors in the client by retrying.
+Over this number, we will need to increase the concurrency limit, or else the operations will be throttled - and we will need to handle the throttling errors in the client by retrying.  
+However, even with a million users - considering 10% daily active users with 10 messages per day each, this should be more than enough.  
+At a higher capacity, lambdas will not suffice. We will need to move to EC2 or Kubernetes to handle load and save costs.
 
 ### SQS
 
