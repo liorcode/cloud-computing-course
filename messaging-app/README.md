@@ -258,10 +258,10 @@ We have set the batch size to 10 to reduce the number of invocations and to proc
 
 - With **1000s** of users, the current configuration should handle the traffic efficiently with very low cost. Since we use on-demand capacity for DynamoDB and Lambda, the cost will be low, and the system will scale automatically to handle the traffic.
 - With **10,000s** of users, the cost will still be relatively low (since AWS charges by the million requests), but costs might start to increase. We will need to monitor the traffic and consider switching to provisioned capacity for DynamoDB to save costs. Auto-scaling can be configured to manage spikes in traffic.
-- With **millions** of users, the system will still scale automatically to handle the traffic, but it could become too expensive and unpredictable to use on-demand capacity, 
-especially if there are bursts of requests, causing DynamoDB and Lambda to scale indefinitely. 
-We should consider switching to provisioned capacity based on expected traffic for both DynamoDB and the messages Lambda. 
-Monitoring and adjusting the provisioned capacity as needed will be crucial.
+- With **millions** of users, the system will still scale automatically to handle the traffic, but we risk hitting the 1000 concurrency limit, which will lead to throttling. That means we will need to handle the throttling errors in the client by retrying.   
+Also, it could become too expensive and unpredictable to use on-demand capacity, 
+especially if there are bursts of requests, causing DynamoDB and Lambda to scale without limits, which could lead to unusual high costs. 
+We should consider switching to provisioned capacity based on expected traffic for both DynamoDB and the messages Lambda, to allow us to control the cost.
 
 ### Cost calculation For 1000 users (numbers can be adjusted based on the expected traffic):
 
