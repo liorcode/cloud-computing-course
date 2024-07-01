@@ -244,7 +244,7 @@ Assuming that each lambda execution time will be around 100ms: each lambda insta
 This means that with 1000 concurrent instances, we can handle around 10,000 messages per second.
 Over this number, we will need to increase the concurrency limit, or else the operations will be throttled - and we will need to handle the throttling errors in the client by retrying.  
 However, even with a million users - considering 10% daily active users with 10 messages per day each, this should be more than enough.  
-At a higher capacity, lambdas will not suffice. We will need to move to EC2 or Kubernetes to handle load and save costs.
+At a higher capacity, lambdas will not suffice and will be too expensive. We will need to move to EC2 or Kubernetes to manage the resources ourselves (possibly with auto-scaling), so we could scale up "infinitely" and manage the costs.
 
 ### SQS
 
