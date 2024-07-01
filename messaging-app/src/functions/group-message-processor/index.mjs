@@ -15,6 +15,10 @@ export async function handle(event) {
         // Send message to each user in the group
         for (const user of groupUsers) {
             const recipient = user.userId;
+            if (recipient === sender) {
+                continue;
+            }
+
             const messageId = randomUUID();
 
             console.info(`Sending group message of ${sender} to user ${recipient}`)
