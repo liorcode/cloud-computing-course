@@ -37,6 +37,7 @@ export AWS_SECRET_ACCESS_KEY=YOUR_SECRET
 Then, you can run the following commands:
 
 ```bash
+npm install
 pulumi up
 ```
 
@@ -67,9 +68,19 @@ Create a new user. Returns the created user id.
 
 Block a user.
 
-Parameters:
+Body parameters (as JSON):
 - `blockedId`: The id of the user to block
 - `blockerId`: The id of the blocking user
+
+##### Example:
+```json
+POST /users/block
+
+{
+    "blockedId": "e9c93258-2246-4ec0-ab44-2a2198186050",
+    "blockerId": "fc05a386-27ce-4ca7-acea-289adc8cc9ff"
+}
+```
 
 ### Groups
 
@@ -81,8 +92,18 @@ Create a new group. Returns the created group id.
 
 Add a member to a group of id `groupId`.
 
-Parameters:
-- `userId`: The id of the user to add to the group
+Body Parameters:
+- `userId`: The id of the user to add to the group `groupId`
+
+#### Example
+
+```json
+POST /groups/a8c93258-2246-4ec0-ab44-2a2198186140/members/`
+
+{
+    "userId": "e9c93258-2246-4ec0-ab44-2a2198186050",
+}
+```
 
 #### `DELETE /groups/{groupId}/members/{userId}`
 
@@ -100,6 +121,19 @@ Parameters:
 - `sender`: The id of the sender
 - `content`: The content of the message
 
+
+#### Example
+
+```json
+POST /messages/user/fc05a386-27ce-4ca7-acea-289adc8cc9ff
+
+
+{
+    "sender": "e9c93258-2246-4ec0-ab44-2a2198186050",
+    "content": "Hi there"
+}
+```
+
 #### `POST /messages/group/{groupId}`
 
 Send a message to a group of id `groupId`.  
@@ -107,24 +141,40 @@ This function uses an SQS queue to send the messages asynchronously to each memb
 
 **Note**: When sending a group message, we do not check for blocked users (same as WhatsApp for example).
 
-Parameters:
+Body Parameters:
 
 - `sender`: The id of the sender
 - `content`: The content of the message
+
+#### Example
+
+```json
+
+POST /messages/group/a8c93258-2246-4ec0-ab44-2a2198186140
+{
+    "sender": "e9c93258-2246-4ec0-ab44-2a2198186050",
+    "content": "Hi there"
+}
+```
 
 The group message processor lambda will read from the SQS queue and create an entry of the message for each group member.
 
 *Note*: for simplicity, we did not use a DLQ. In a real-world scenario, we would use a DLQ to retry messages that could not be processed successfully.
 
 
-#### `GET /messages/{recipient}`
+#### `GET /messages/{recipient}?date={date}`
 
 Get all messages sent to a user of id `recipient`.
 This gets both direct messages and messages sent to groups the user is a member of.
 
 If the amount of messages is too large (excceeds the MESSAGES_PER_PAGE), the response will include a `nextPageToken` that can be used to get the next page of messages.
 
-The response will be in the following format:
+##### Example
+
+`GET /messages/a8c93258-2246-4ec0-ab44-2a2198186140?date=2024-06-24T10:00:00.000Z`
+
+
+The response will be as in the following format:
 
 ```json
 {
@@ -148,9 +198,9 @@ The response will be in the following format:
 }
 ```
 
-Parameters:
+Query parameters:
 
-- `date` (Optional): The date from which to get the messages. If not provided, all messages are returned (up to the page limit).  
+- `date` - (In ISO format) The date from which to get the messages. If not provided, all messages are returned (up to the page limit).  
 This is useful to get only new messages since the last time the user checked for messages (assuming this "last fetch date" is saved locally in the app client).
 This parameter is also used for pagination - you need to pass the `nextPageToken` from the previous response to get the next page of messages.
 
@@ -180,17 +230,15 @@ This allows us to efficiently get all messages sent to a user after a given date
 ### Lambda functions
 
 AWS Lambda scales automatically by increasing the number of concurrent instances based on the traffic.
-That means that when more users will use the app to send messages, more instances of the Lambda functions will be created to handle the traffic.
+That means that when more users will use the app at the same time, lambda will provision more instances to handle the load, until the concurrency limit is reached (1000 by default).
 
-Since lambda functions are billed based on the number of invocations and the execution time, it is important to make sure the functions are efficient and fast:
+Since lambda functions are billed based on the number of invocations and the execution time, it is important to make sure the functions are efficient and fast. This will also help us support more messages per second.
 
 - Our "create" users/groups/direct message lambdas are simple and should be very fast. All they do is write to the database and return the generated id.
 - Our "send group message" lambda is also very fast, since all it does is write to the SQS queue.
 - Our "get messages" lambda is a little complex, since it needs to read from the database and return the messages. This is why it was important to make sure the queries are efficient and that the function is fast to avoid high costs.
-The query size is limited to MESSAGES_PER_PAGE, which allows us to get a page of messages at a time, and the query is efficient since it uses the `recipient-date-index` to get the messages efficiently.
+The response size is limited to MESSAGES_PER_PAGE, which allows us to get a page of messages at a time, and the query is efficient since it uses the `recipient-date-index` to get the messages efficiently.
 - Our "group message processor" lambda reads from the SQS and duplicates the message to all the members of the group. It reads in batches of 10 messages, which allows it to process the messages efficiently and in parallel.
-
-And same with the lambdas, when the traffic will get more predictable, we might want to switch to a provisioned capacity to have more predictable costs.
 
 
 ### SQS
@@ -221,7 +269,8 @@ Monitoring and adjusting the provisioned capacity as needed will be crucial.
 - Invocations: 300,000 (direct messages)
 - Duration: Assume 100ms per invocation.
 - Total Duration: 300,000 * 0.1s = 30,000 seconds = 8.33 hours of Lambda execution time per month.
-- Cost: Free tier for 1M requests and 400,000 GB-seconds. Since 30,000 seconds * 128 MB/1024 = 3.75 GB-seconds, this falls under the free tier.
+- Total Memory: The minimal 128 MB will be enough.
+- Cost: Since 30,000 seconds * 128 MB/1024 = 3.75 GB-seconds, this falls under the free tier (up to 400,000 GB-seconds of compute time per month)
 
 #### DynamoDB Cost:
 - Writes: 300,000 writes (direct messages) + 3,000,000 writes (group messages) = 3,300,000 writes/month.
