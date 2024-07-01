@@ -36,7 +36,7 @@ export async function sendDirectMessage(event) {
     return { status: `Message ${messageId} sent to user ${recipient}` };
 }
 
-async function isUserBlocked(blockerId, blockedId) {
+async function isUserBlocked(blockedId, blockerId) {
     const resp = await dynamo.get({
         TableName: BLOCKED_USERS_TABLE,
         Key: {
