@@ -244,7 +244,9 @@ Assuming that each lambda execution time will be around 100ms: each lambda insta
 This means that with 1000 concurrent instances, we can handle around 10,000 messages per second.
 Over this number, we will need to increase the concurrency limit, or else the operations will be throttled - and we will need to handle the throttling errors in the client by retrying.  
 However, even with a million users - considering 10% daily active users with 10 messages per day each, this should be more than enough.  
-At a higher capacity, lambdas will not suffice and will be too expensive. We will need to move to EC2 or Kubernetes to manage the resources ourselves (possibly with auto-scaling), so we could scale up "infinitely" and manage the costs.
+At a higher capacity, lambdas will not suffice and will be too expensive. 
+We will need to move to EC2 or Kubernetes (EKS) to manage the compute resources ourselves (possibly with auto-scaling), so we could scale up "infinitely" and manage the costs.
+This way we can can also avoid using the API Gateway (since we don't really need most of its features), which can have a high cost at scale.
 
 ### SQS
 
@@ -271,11 +273,15 @@ We should consider switching to provisioned capacity based on expected traffic f
 - Group messages: Assume an average group size of 10 members. 300,000 * 10 = 3,000,000 messages.
 
 #### Lambda Cost:
-- Invocations: 300,000 (direct messages)
+- Invocations: 300,000 (most of them are message sending, few are for user/group creation and blocking)
 - Duration: Assume 100ms per invocation.
 - Total Duration: 300,000 * 0.1s = 30,000 seconds = 8.33 hours of Lambda execution time per month.
 - Total Memory: The minimal 128 MB will be enough.
 - Cost: Since 30,000 seconds * 128 MB/1024 = 3.75 GB-seconds, this falls under the free tier (up to 400,000 GB-seconds of compute time per month)
+
+#### API Gateway Cost:
+- Assume 300,000 requests/month (same as above)
+- Cost: 300,000 * $3.50 per million = $1.05
 
 #### DynamoDB Cost:
 - Writes: 300,000 writes (direct messages) + 3,000,000 writes (group messages) = 3,300,000 writes/month.
